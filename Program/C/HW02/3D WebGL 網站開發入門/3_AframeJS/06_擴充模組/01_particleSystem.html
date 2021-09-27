@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
+</head>
+<body>
+    <a-scene>
+        <a-entity position="0 2.25 -15" particle-system="preset: star; particleCount: 1000; color: #EF0000"></a-entity>
+ 
+        <a-sphere position="0 1 -4" radius="0.5" shadow></a-sphere>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#333" shadow></a-plane>
+        <a-sky color="#070b38"></a-sky>
+    </a-scene>
+</body>
+</html>

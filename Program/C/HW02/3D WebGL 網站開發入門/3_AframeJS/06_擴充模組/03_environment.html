@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="https://rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+</head>
+<body>
+    <a-scene>
+        <a-entity environment="preset: forest; groundColor: #445; grid: dots"></a-entity>
+
+        <a-sphere position="0 1 -4" radius="0.5" shadow></a-sphere>
+        <a-box position="0 5 -4" shadow></a-box>
+        <a-sky color="#070b38"></a-sky>
+    </a-scene>
+</body>
+</html>

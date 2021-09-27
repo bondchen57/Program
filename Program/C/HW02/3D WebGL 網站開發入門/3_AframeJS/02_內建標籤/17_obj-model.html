@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+</head>
+<body>
+    <a-scene>
+        <a-assets>
+            <a-asset-item id="crate-obj" src="models/obj_bedroom/bedroom.obj"></a-asset-item>
+            <a-asset-item id="crate-mtl" src="models/obj_bedroom/bedroom.mtl"></a-asset-item>
+        </a-assets>
+        <a-obj-model src="#crate-obj" mtl="#crate-mtl" scale="0.05 0.05 0.05" color="#f00" shadow></a-obj-model>
+        <a-sky color="#ECECEC"></a-sky>
+    </a-scene>
+</body>
+</html>

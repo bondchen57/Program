@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/libs/dat.gui.min.js"></script>
+    
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var container, camera, scene, renderer, objects, mesh;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+
+        init();
+        animate();
+
+        function init() {
+            //建立繪製器
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }    
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //追蹤時間用，就是 performance.now()
+            clock = new THREE.Clock();
+
+            //建立相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 500; 
+            
+            //建立場景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+            scene.fog = new THREE.Fog(0x000000, 1, 15000);
+
+            //建立光
+            var light = new THREE.PointLight( 0xff2200 );
+            light.position.set( 100, 100, 100 );
+            scene.add(light );
+            var light = new THREE.AmbientLight( 0x111111 );
+            scene.add( light );
+
+            var geometry = new THREE.BoxGeometry( 100, 100, 100 );
+            var material = new THREE.MeshLambertMaterial( { color: 0xffffff, morphTargets: true } );
+
+            //新增目標變形的頂點
+            for(var i = 0; i < 8; i++){
+                var vertices = [];
+                for(var v = 0; v < geometry.vertices.length; v ++){
+                    vertices.push(geometry.vertices[v].clone());
+                    if(v === i){
+                        vertices[vertices.length - 1].x *= 2;
+                        vertices[vertices.length - 1].y *= 2;
+                        vertices[vertices.length - 1].z *= 2;
+                    }
+                }
+                geometry.morphTargets.push({name: "target" + i, vertices: vertices});
+            }
+
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add( mesh );
+
+            //建立控制參數
+            var params = {
+                influence1: 0,
+                influence2: 0,
+                influence3: 0,
+                influence4: 0,
+                influence5: 0,
+                influence6: 0,
+                influence7: 0,
+                influence8: 0
+            };
+
+            //加上控制面板
+            var gui = new dat.GUI();
+            var folder = gui.addFolder('Morph Targets');
+            folder.add(params, 'influence1', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[0] = value;});
+            folder.add(params, 'influence2', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[1] = value;});
+            folder.add(params, 'influence3', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[2] = value;});
+            folder.add(params, 'influence4', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[3] = value;});
+            folder.add(params, 'influence5', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[4] = value;});
+            folder.add(params, 'influence6', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[5] = value;});
+            folder.add(params, 'influence7', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[6] = value;});
+            folder.add(params, 'influence8', 0, 1).step(0.01).onChange(function(value){mesh.morphTargetInfluences[7] = value;});
+            folder.open();
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //轉動方塊
+            mesh.rotation.y += 0.01;
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

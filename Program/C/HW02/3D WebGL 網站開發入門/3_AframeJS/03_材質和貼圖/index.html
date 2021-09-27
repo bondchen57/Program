@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="shaders/sky.js"></script>
+    <script src="shaders/noise.js"></script>
+</head>
+<body>
+    <a-scene>
+        <a-assets>
+            <img id="cover" src="textures/cover.jpg">
+            <a-cubemap id="reflection">
+                <img src="textures/px.jpg">
+                <img src="textures/nx.jpg">
+                <img src="textures/py.jpg">
+                <img src="textures/ny.jpg">
+                <img src="textures/pz.jpg">
+                <img src="textures/nz.jpg">
+            </a-cubemap>
+            <a-mixin id="animation" easing="linear" dur="4096" repeat="indefinite"></a-mixin>
+            <a-mixin id="light" geometry="primitive: sphere; radius: .025" light="color: #FFF; intensity: .4; type: point" material="shader: flat"></a-mixin>
+            <a-mixin id="sphere" geometry="primitive: sphere; radius: 0.6"></a-mixin>
+        </a-assets>
+
+        <a-entity position="-2 3.5 -4" geometry="primitive: box" material="color: red;"></a-entity>
+        <a-entity position="0 3.5 -4" geometry="primitive: box" material="color: red; opacity: 0.3;"></a-entity>
+        <a-entity position="2 3.5 -4" geometry="primitive: box" material="shader: flat; color: red;"></a-entity>
+        <a-entity position="-2 2 -4" geometry="primitive: box" material="src: #cover;"></a-entity>
+        <a-entity position="0 2 -4" geometry="primitive: box" material="src: #cover; opacity: 0.3;"></a-entity>
+        <a-entity position="2 2 -4" geometry="primitive: box" material="shader: flat; src: #cover;"></a-entity>
+        <a-entity position="-2 0.5 -4" geometry="primitive: box" material="src: #cover; repeat: 10 10;"></a-entity>
+        <a-entity position="0 0.5 -4" mixin="sphere" material="envMap: #reflection; metalness: 0.7; roughness: 0.5; color: white;"></a-entity>
+        <a-entity position="2 0.5 -4" geometry="primitive: sphere; radius: 0.4" material="shader: noise; color: blue;"></a-entity>
+
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#888" material="src: textures/rock.jpg;" shadow></a-plane>
+        <a-sky material="shader: sky;"></a-sky>
+
+
+        <a-light type="ambient" color="#aaa"></a-light>
+        <a-entity position="0 0 -40">
+            <a-animation mixin="animation" attribute="rotation" to="0 360 0"></a-animation>
+            <a-entity mixin="light" position="0 0 70"></a-entity>
+        </a-entity>
+        <a-entity position="0 0 -40">
+            <a-animation mixin="animation" attribute="rotation" to="360 0 0"></a-animation>
+            <a-entity mixin="light" position="0 70 0"></a-entity>
+        </a-entity>
+    </a-scene>
+</body>
+</html>

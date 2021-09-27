@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/loaders/ColladaLoader.js"></script>
+    <script src="../js/controls/TrackballControls.js"></script>
+    
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, render, material, sphereMesh, boxMesh, controls, model;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+       
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }    
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //建立相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 10;
+
+            //建立控制器
+            controls = new THREE.TrackballControls(camera);
+            controls.addEventListener('change', function(){
+                renderer.render(scene, camera);
+            });
+            
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立環境光
+            var ambientLight = new THREE.AmbientLight(0xffffff, 1);
+            scene.add(ambientLight);
+
+            //建立 THREE.ColladaLoader
+            var loader = new THREE.ColladaLoader();
+            loader.load('models/dae_elf/elf.dae', function(collada){
+                model = collada.scene;              //取得 .dae 檔案中儲存的模型，這是一個 mesh
+                model.scale.set(1, 1, 1);           //調整模型大小
+                model.position.y = -3;             //調整模型位置
+                model.updateMatrix();               //更新矩陣
+                scene.add(model);                   //將模型加到場景
+            });
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+            
+            //更新場景控制器
+            controls.handleResize();
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            if(model){
+                model.rotation.z += 0.01;
+            }
+
+            //控制器更新
+            controls.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/controls/TrackballControls.js"></script>
+    
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, model, clock, mixer;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init() {
+            //建立繪製器
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }    
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //建立相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 10;
+
+            //建立場景
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.035);
+			mixer = new THREE.AnimationMixer(scene);
+
+            //追蹤時間用，就是 performance.now()
+            clock = new THREE.Clock();
+
+            //建立控制器
+            controls = new THREE.TrackballControls(camera);
+            controls.addEventListener('change', function(){
+                renderer.render(scene, camera);
+            });
+
+            //建立光
+            var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            var light = new THREE.HemisphereLight( 0xffeeee, 0x111122 );
+            scene.add( light );
+  
+            //先載入模型，再初始畫面
+            var loader = new THREE.JSONLoader();
+            loader.load('models/json_human/human.json', function(geometry, materials){
+
+                for(var i = 0, l = materials.length; i < l; i++) {
+                    materials[i].skinning = true;
+                }
+
+                model = new THREE.SkinnedMesh(geometry, materials);
+                model.scale.set(2, 2, 2);
+                
+                var action = {};
+                mixer = new THREE.AnimationMixer(model);
+                action.hello = mixer.clipAction(geometry.animations[0]);
+                action.idel = mixer.clipAction(geometry.animations[1]);
+                action.run = mixer.clipAction(geometry.animations[3]);
+                action.walk = mixer.clipAction(geometry.animations[4]);
+
+                action.walk.play();
+
+                scene.add(model);
+            });
+            
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+            
+            //更新場景控制器
+            controls.handleResize();
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //更新模型動畫
+            //requestAnimationFrame 有個微妙問題，就是 render 函數的調用時間間隔不是固定的
+            //為了讓動畫速度保持穩定，須根據每次調用的時間差計算動畫微調的幅度
+            //delta 就是以秒為單位的間隔時間
+            var delta = clock.getDelta();
+            if(mixer !== undefined){
+                mixer.update(delta);
+            }
+
+            //控制器更新
+            controls.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

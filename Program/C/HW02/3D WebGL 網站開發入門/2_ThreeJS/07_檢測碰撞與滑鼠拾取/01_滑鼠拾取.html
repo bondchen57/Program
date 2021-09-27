@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/renderers/Projector.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, sphere, box, sphereMesh, boxMesh;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立一個球體物件
+            sphere = new THREE.SphereGeometry(200, 12, 12);
+            box = new THREE.BoxGeometry(200, 200, 200, 2, 2, 2);
+
+            //根據模型和材質建立曲面
+            sphereMesh = new THREE.Mesh(sphere, new THREE.MeshNormalMaterial());
+            sphereMesh.position.x = -100;
+            boxMesh = new THREE.Mesh(box, new THREE.MeshNormalMaterial());
+            boxMesh.position.x = 100;
+
+            //將曲面增加到場景中
+            scene.add(sphereMesh);
+            scene.add(boxMesh);
+
+            //定義 Canvas 滑鼠點擊事件
+            renderer.domElement.addEventListener('mousedown', canvasMouseDownHandler, false);
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+        
+        //Canvas 滑鼠點擊事件處理函數
+        function canvasMouseDownHandler(evt){
+            evt.preventDefault();   //取消預設行為
+            var fovy = 55;          //角度
+
+            //計算畫布的 z 座標
+            var cos = Math.cos(fovy/2 * Math.PI/180);
+            var z = Math.sqrt(Math.sqrt(1/cos + (1/cos + 1)*(1/cos + 1)/4) - (1/cos + 1)/2);
+
+            //計算滑鼠點擊的座標
+            var vector = new THREE.Vector3((evt.clientX / 640) * 2 - 1, -(evt.clientY / 480) * 2 + 1, z);
+       
+            //使用目前相機的投影逆轉換座標
+            //var projector = new THREE.Projector();
+            //projector.unprojectVector(vector, camera);
+            vector.unproject(camera);
+
+            //獲得射線向量
+            var dir = vector.sub(camera.position).normalize();
+            
+            //建構一個 Raycaster 物件
+            var raycaster =  new THREE.Raycaster(camera.position, dir);
+
+            //呼叫 intersectObject() 方法檢測球體相交
+            var intersects = raycaster.intersectObject(sphereMesh);
+            
+            //對傳回值進行檢測，如果大於 0，那麼就證明與球體相交了
+            if(intersects.length > 0){
+                console.log('點選球體');
+                console.log(intersects);        //在主控台檢視傳回值
+            }
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            //sphereMesh.rotation.x += 0.01;
+            sphereMesh.rotation.y += 0.02;
+
+            //boxMesh.rotation.x += 0.01;
+            boxMesh.rotation.y += 0.02;
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

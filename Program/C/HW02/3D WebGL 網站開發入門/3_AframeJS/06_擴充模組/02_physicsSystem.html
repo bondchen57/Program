@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="http://cdn.rawgit.com/donmccurdy/aframe-physics-system/v2.1.0/dist/aframe-physics-system.min.js"></script>
+</head>
+<body>
+    <a-scene physics="debug: false;">
+        <a-sphere position="0 1 -4" radius="0.5" shadow dynamic-body="shape: cylinder; cylinderAxis: y; mass: 5"></a-sphere>
+        <a-box position="0 5 -4" shadow dynamic-body="shape: box; mass: 2"></a-box>
+        <a-plane static-body position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#333" shadow></a-plane>
+        <a-sky color="#070b38"></a-sky>
+    </a-scene>
+</body>
+</html>

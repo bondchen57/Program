@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+</head>
+<body>
+    <a-scene>
+        <a-assets>
+            <img id="my-image" src="textures/city.jpg">
+        </a-assets>
+        <a-curvedimage src="#my-image" height="3.0" radius="5.7" theta-length="72" rotation="0 100 0" scale="0.8 0.8 0.8"></a-curvedimage>
+        <a-sky color="#ECECEC"></a-sky>
+    </a-scene>
+</body>
+</html>

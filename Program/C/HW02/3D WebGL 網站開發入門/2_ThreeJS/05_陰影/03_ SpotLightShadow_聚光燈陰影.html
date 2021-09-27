@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, geometry, mesh, mesh2;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 100;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //打環境光
+            var ambientLight = new THREE.AmbientLight(0x999999, 0.8);
+            scene.add(ambientLight);
+
+            //建立點光源
+            var spotLight = new THREE.SpotLight(0xffffff, 2, 1000, Math.PI/5, 1);
+            spotLight.position.set(0, 760, -600);
+            
+            //開啟陰影
+            spotLight.castShadow = true;
+            spotLight.shadow.camera.near = 1;
+            spotLight.shadow.camera.far = 1000;
+            spotLight.shadow.camera.fov = 30;
+            spotLight.shadow.mapSize.width = 512;
+            spotLight.shadow.mapSize.height = 512;
+            //定義陰影的圖形解析（越高解析越好，但相對耗費資源）
+            spotLight.shadow.mapSize.width = 1024;
+            spotLight.shadow.mapSize.height = 1024;
+
+            scene.add(spotLight);
+
+            //建立平行光輔助工具
+            var spotLightHelper = new THREE.SpotLightHelper(spotLight, 10);
+            scene.add(spotLightHelper);
+
+            //建立物件們
+            geometry = new THREE.TorusGeometry(60, 25, 10, 70, Math.PI*2);
+            var material = new THREE.MeshStandardMaterial({color: 0xffcc00});
+            mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(0, 0, -200);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+
+            geometry2 = new THREE.BoxGeometry(30, 30, 30);
+            var material2 = new THREE.MeshStandardMaterial({color: 0x00ffff});
+            mesh2 = new THREE.Mesh(geometry2, material2);
+            mesh2.position.set(0, 0, -200);
+            mesh2.castShadow = true;
+            mesh2.receiveShadow = true;
+            scene.add(mesh2);
+
+            //建立地板
+            var planeGeometry = new THREE.PlaneGeometry(800, 800, 100);
+            var planeMaterial = new THREE.MeshStandardMaterial({color: 0xffffff});
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI/3;
+            plane.position.set(0, -20, -400);
+            plane.receiveShadow = true;
+            scene.add(plane);
+
+            
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+        
+        
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.02;
+
+            mesh2.rotation.x += 0.01;
+            mesh2.rotation.y += 0.02;
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

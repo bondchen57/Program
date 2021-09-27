@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, geometry, mesh, mesh2;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立一個立方體
+            geometry = cube(200);
+
+            //計算頂點之間的距離
+            geometry.computeLineDistances();
+
+            //建立線段材質：線段顏色、線條粗細、端點形狀（線蓋）、線條結合、是否使用頂點顏色、該材質顏色是否被全域的 fog 影響
+            //LineBasicMaterial:function(parameters)
+            //color[0xffffff], linewidth[1], linecap[round], linejoin[round], vertexColors[false], fog[true]
+            var material = new THREE.LineBasicMaterial({color: 0xff0000});
+            
+            //建立虛線材質：線段顏色、線條粗細、縮放係數、單一實現的長度、實現之間的間隔、是否使用頂點顏色、該材質顏色是否被全域的 fog 影響
+            //LineDashedMaterial:function(parameters)
+            //color[0xffffff], linewidth[1], scale[1], dashSize[3], gapSize[1], vertexColors[false], fog[true]
+            var material2 = new THREE.LineDashedMaterial({color: 0x00ffff,
+                                                        linewidth: 5,
+                                                        dashSize: 10,
+                                                        gapSize: 10});
+
+            //建立線段，並使用基本線斷材質和預設的 THREE.Line 繪製
+            mesh = new THREE.Line(geometry, material);
+            mesh2 = new THREE.Line(geometry, material2);
+
+            //將曲面增加到場景中
+            scene.add(mesh);
+            scene.add(mesh2);
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+        
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.02;
+
+            mesh2.rotation.x -= 0.01;
+            mesh2.rotation.y -= 0.02;
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+
+        //重新定義 cube 函數：其中有線段無法避免重合，需定義更多頂點
+        function cube(size){
+            var h = size * 1;
+            var g = new THREE.Geometry();
+            g.vertices.push(
+                new THREE.Vector3( -h, -h, -h ),
+                new THREE.Vector3( -h, h, -h ),
+                new THREE.Vector3( -h, h, -h ),
+                new THREE.Vector3( h, h, -h ),
+                new THREE.Vector3( h, h, -h ),
+                new THREE.Vector3( h, -h, -h ),
+                new THREE.Vector3( h, -h, -h ),
+                new THREE.Vector3( -h, -h, -h ),
+                new THREE.Vector3( -h, -h, h ),
+                new THREE.Vector3( -h, h, h ),
+                new THREE.Vector3( -h, h, h ),
+                new THREE.Vector3( h, h, h ),
+                new THREE.Vector3( h, h, h ),
+                new THREE.Vector3( h, -h, h ),
+                new THREE.Vector3( h, -h, h ),
+                new THREE.Vector3( -h, -h, h ),
+                new THREE.Vector3( -h, -h, -h ),
+                new THREE.Vector3( -h, -h, h ),
+                new THREE.Vector3( -h, h, -h ),
+                new THREE.Vector3( -h, h, h ),
+                new THREE.Vector3( h, h, -h ),
+                new THREE.Vector3( h, h, h ),
+                new THREE.Vector3( h, -h, -h ),
+                new THREE.Vector3( h, -h, h )
+                );
+            return g;
+        }
+    </script>
+</body>
+</html>

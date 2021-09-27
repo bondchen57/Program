@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/controls/TrackballControls.js"></script>
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, render, sphere, box, material, sphereMesh, boxMesh, controls;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立 TrackballControls 控制器
+            controls = new THREE.TrackballControls(camera);
+
+            //設定 TrackballControls 物件的屬性
+            controls.enabled = true;            //是否啟用控制
+            controls.screen = {left: 0, top: 0, width: WIDTH, height: HEIGHT};       //螢幕控制區域，0 表示全 Canvas
+            controls.rotateSpeed = 1.0;             //旋轉速度
+            controls.zoomSpeed = 1.2;               //縮放速度
+            controls.panSpeed = 0.3;                //平移速度
+
+            controls.noRotate = false;              //是否允許旋轉
+            controls.noZoom = false;                //是否允許縮放
+            controls.noPan = false;                 //是否允許平移
+            controls.noRoll = false;                //是否允許捲動
+
+            controls.staticMoving = false;          //是否間歇式移動
+            controls.dynamicDampingFactor = 0.3;    //變化的阻尼係數
+            controls.minDistance = 0;               //滑鼠變化的最小量，超過這個量才確認是在移動
+            controls.maxDistance = Infinity;        //滑鼠變化的最大量，小於這個量才確認是在移動
+
+            //定義分別用來實現旋轉、縮放、平移的鍵盤按鍵
+            //controls.keys = [65 /*A*/, 83 /*S*/, 68 /*D*/];
+            
+            //定義 change 事件監聽，在事件處理函數中繪製場景
+            controls.addEventListener('change', function(){
+                renderer.render(scene, camera);
+            });
+
+            //建立一個球體物件
+            sphere = new THREE.SphereGeometry(200, 12, 12);
+            box = new THREE.BoxGeometry(200, 200, 200, 2, 2, 2);
+
+            //根據模型和材質建立曲面
+            sphereMesh = new THREE.Mesh(sphere, new THREE.MeshNormalMaterial());
+            sphereMesh.position.x = -100;
+            boxMesh = new THREE.Mesh(box, new THREE.MeshNormalMaterial());
+            boxMesh.position.x = 100;
+
+            //將曲面增加到場景中
+            scene.add(sphereMesh);
+            scene.add(boxMesh);
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+            
+            //更新場景控制器
+            controls.handleResize();
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            //sphereMesh.rotation.x += 0.01;
+            sphereMesh.rotation.y += 0.02;
+
+            //boxMesh.rotation.x += 0.01;
+            boxMesh.rotation.y += 0.02;
+
+            //更新控制器
+            controls.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

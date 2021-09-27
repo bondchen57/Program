@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="https://npmcdn.com/aframe-layout-component@3.0.1"></script>
+    <script src="https://npmcdn.com/aframe-template-component@3.1.1"></script>
+    <script>
+        AFRAME.registerComponent('handle-events', {
+            init: function () {
+                var el = this.el;  // <a-box>
+                el.addEventListener('mouseenter', function () {
+                    el.setAttribute('color', '#24CAFF');  
+                });
+                el.addEventListener('mouseleave', function () {
+                    el.setAttribute('color', '#EF2D5E');  
+                });
+                el.addEventListener('click', function () {
+                    console.log('click!');
+                });
+            } 
+        });
+        AFRAME.registerComponent('cursor-listener', {
+            init: function () {
+                var el = this.el;
+                el.addEventListener('click', function (evt) {
+                    document.querySelector('#sky').setAttribute('material', 'color', el.attributes.color.value);
+                    console.log('I was clicked at: ', evt.detail.intersection.point);
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <a-scene>
+        <a-assets>
+            <script id="link" type="text/html">
+                <a-entity class="link" cursor-listener
+                    geometry="primitive: plane; height: 1; width: 1"
+                    material="color: ${color}"
+                    event-set__1="_event: mouseenter; scale: 1.2 1.2 1"
+                    event-set__2="_event: mouseleave; scale: 1 1 1"
+                    color="${color}"
+                    sound="on: click; src: #click-sound"></a-entity>
+            </script>
+            <audio id="click-sound" crossorigin="anonymous" src="audios/click.ogg"></audio>
+        </a-assets>
+
+        <a-camera>
+            <a-entity cursor="fuse: true; fuseTimeout: 500"
+                position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03"
+                material="color: #900; shader: flat">
+                <a-animation begin="click" easing="ease-in" attribute="scale"
+                    fill="backwards" from="0.1 0.1 0.1" to="1 1 1"></a-animation>
+                <a-animation begin="cursor-fusing" easing="ease-in" attribute="scale"
+                    fill="forwards" from="1 1 1" to="0.1 0.1 0.1"></a-animation>
+            </a-entity>
+        </a-camera>
+
+        <a-entity id="links" layout="type: line; margin: 1.5" position="-1.5 1 -4">
+            <a-entity template="src: #link" data-color="#faa"></a-entity>
+            <a-entity template="src: #link" data-color="#afa"></a-entity>
+            <a-entity template="src: #link" data-color="#aaf"></a-entity>
+        </a-entity>
+
+        <a-box color="#EF2D5E" position="0 4 -4" handle-events shadow></a-box>
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#888" shadow></a-plane>
+        <a-sky id="sky" color="#ddd"></a-sky>
+    </a-scene>
+</body>
+</html>

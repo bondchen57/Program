@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/libs/tween.min.js"></script>
+    <script src="../js/loaders/ColladaLoader.js"></script>
+    <script src="../js/controls/TrackballControls.js"></script>
+    
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, objects, model;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+        var kinematics, kinematicsTween;
+		var tweenParameters = {};
+        
+        //先載入模型，再初始畫面
+        var loader = new THREE.ColladaLoader();
+        loader.load('models/dae_car/car.dae', function(collada){
+            model = collada.scene;
+            
+            //加上立體材質
+            model.traverse(function(child){
+                if(child instanceof THREE.Mesh){
+                    child.material.flatShading = true;
+                }
+            });
+            model.scale.x = model.scale.y = model.scale.z = 5.0;
+            model.position.y = -3;
+            model.updateMatrix();
+
+            //抓取運動學屬性
+            kinematics = collada.kinematics;
+
+            init();
+            animate();
+        });
+
+        //該函數用於初始化工作
+        function init() {
+            //建立繪製器
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }    
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //建立相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 10;
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立控制器
+            controls = new THREE.TrackballControls(camera);
+            controls.addEventListener('change', function(){
+                renderer.render(scene, camera);
+            });
+            
+            //建立光
+            var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            var light = new THREE.HemisphereLight( 0xffeeee, 0x111122 );
+            scene.add( light );
+
+            //建立模型
+            scene.add(model);
+
+            //設定關鍵動畫
+            setupTween();
+            
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //該函數用於設定關鍵影格
+        function setupTween() {
+            var duration = THREE.Math.randInt(1000, 5000);
+            var target = {};
+
+            //抓取關節
+            for(var prop in kinematics.joints){
+                if(kinematics.joints.hasOwnProperty(prop)){
+                    //如果不是靜態的關節才動作
+                    if(!kinematics.joints[prop].static){
+                        var joint = kinematics.joints[prop];
+                        var old = tweenParameters[prop];
+                        var position = old ? old : joint.zeroPosition;
+                        tweenParameters[prop] = position;
+                        target[prop] = THREE.Math.randInt(joint.limits.min, joint.limits.max);
+                    }
+                }
+            }
+
+            //...
+            kinematicsTween = new TWEEN.Tween(tweenParameters).to(target, duration).easing(TWEEN.Easing.Quadratic.Out);
+            kinematicsTween.onUpdate(function(){
+                for(var prop in kinematics.joints){
+                    if(kinematics.joints.hasOwnProperty(prop)){
+                        if(!kinematics.joints[prop].static){
+                            kinematics.setJointValue(prop, this[prop]);
+                        }
+                    }
+                }
+            });
+            kinematicsTween.start();
+            setTimeout(setupTween, duration);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+            
+            //更新場景控制器
+            controls.handleResize();
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //更新動畫
+            TWEEN.update();
+
+            //控制器更新
+            controls.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

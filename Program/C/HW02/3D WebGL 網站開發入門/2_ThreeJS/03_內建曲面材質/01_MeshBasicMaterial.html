@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, geometry, mesh;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立光源
+            var ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+            var directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(0, 1, 0);
+            scene.add(directionalLight);
+
+            //建立一個環狀曲面體物件
+            geometry = new THREE.TorusGeometry(200, 80, 10, 20, Math.PI*2);
+
+            //建立一個 MeshBasicMaterial 材質
+            var material = new THREE.MeshBasicMaterial({color: 0xffcc00});
+
+            //根據模型和材質建立曲面
+            mesh = new THREE.Mesh(geometry, material);
+
+            //將曲面增加到場景中
+            scene.add(mesh);
+
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.02;
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

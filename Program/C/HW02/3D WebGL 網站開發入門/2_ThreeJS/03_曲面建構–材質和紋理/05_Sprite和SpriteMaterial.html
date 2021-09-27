@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //設定相機位置
+            camera.position.set(100, 100, 100);       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //載入一個圖片作為紋理
+            var textureLoader = new THREE.TextureLoader();
+            var texture = textureLoader.load('textures/city.jpg', function(tex){
+                //取得紋理圖片的寬度和高度作為 Sprite 的縮放率
+                var scaleX = tex.image.width*0.05;
+                var scaleY = tex.image.height*0.05;
+
+                //根據紋理圖片建立 SpriteMaterial 材質，注意透明度不同
+                var materialA1 = new THREE.SpriteMaterial({
+                    map: texture,
+                    opacity: 0.4
+                });
+                var materialA2 = new THREE.SpriteMaterial({
+                    map: texture,
+                    opacity: 0.4
+                });
+                var materialA3 = new THREE.SpriteMaterial({
+                    map: texture,
+                    opacity: 0.4
+                });
+
+                /* 下面根據不同材質建立三個 Sprite */
+                var sprite = new THREE.Sprite(materialA1);      //根據一個材質建立 Sprite
+                sprite.position.set(100, 100, 0);               //設定 Sprite 的位置，注意 z 設定無效
+                sprite.scale.set(scaleX, scaleY, 1);            //設定 Sprite 的縮放，等於圖片大小
+                scene.add(sprite);                              //增加 Sprite 到場景
+
+                var sprite = new THREE.Sprite(materialA2);      //根據一個材質建立 Sprite
+                sprite.position.set(100, 100, 30);              //設定 Sprite 的位置，注意 z 設定無效
+                sprite.scale.set(scaleX, scaleY, 1);            //設定 Sprite 的縮放，等於圖片大小
+                scene.add(sprite);                              //增加 Sprite 到場景
+
+                var sprite = new THREE.Sprite(materialA3);      //根據一個材質建立 Sprite
+                sprite.position.set(100, 100, 60);              //設定 Sprite 的位置，注意 z 設定無效
+                sprite.scale.set(scaleX, scaleY, 1);            //設定 Sprite 的縮放，等於圖片大小
+                scene.add(sprite);                              //增加 Sprite 到場景
+            });
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //推移
+            for(var i = 0, l = scene.children.length; i < l; i++){
+                var sprite = scene.children[i];
+                sprite.position.z += 0.1;
+
+                if(sprite.position.z > 100){
+                    sprite.position.z = 0;
+                }
+            }
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

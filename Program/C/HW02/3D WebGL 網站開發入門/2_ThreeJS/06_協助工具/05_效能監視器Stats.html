@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/stats.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, geometry, mesh, stats;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立一個球體物件：半徑、經度分段數目、緯度分段數目、經度起始值、終止值、緯度起始值、終止值
+            //THREE.SphereGeometry = function(radius[1], widthSegments[8,min:3], heightSegments[2,min:6], phiStart[0], phiLength[2π], thetaStart[0], thetaLength[π])
+            geometry = new THREE.SphereGeometry(200, 10, 10, 0, Math.PI*2, 0, Math.PI);
+
+            //使用顏色建立一個材質，呈現線方塊圖
+            var material = new THREE.MeshNormalMaterial;
+
+            //根據模型和材質建立曲面
+            mesh = new THREE.Mesh(geometry, material);
+
+            //將曲面增加到場景中
+            scene.add(mesh);
+
+            //建立效能監視器，將加到 DOM 結構中
+            stats = new Stats();
+            stats.setMode(1);       //設定顯示的模式 0: fps, 1: ms
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+            document.body.appendChild(stats.domElement); 
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.02;
+
+            //更新效能監視器
+            stats.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, cameraPerpective, cameraOrtho, cameraPerpectiveHelper, cameraOrthoHelper;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //定義一個透視投影用於呈現輔助工具
+            cameraPerpective = new THREE.PerspectiveCamera(50, 320/240, 150, 500);
+            cameraPerpective.position.x = 0;
+            cameraPerpective.position.y = 100;
+            cameraPerpective.position.z = 200;
+            scene.add(cameraPerpective);
+
+            //根據透視投影建立輔助工具
+            cameraPerpectiveHelper = new THREE.CameraHelper(cameraPerpective);
+            cameraPerpectiveHelper.visible = true;
+            scene.add(cameraPerpectiveHelper);
+
+            //定義一個正交投影用於呈現輔助工具
+            cameraOrtho = new THREE.OrthographicCamera(-160, 160, 120, -120, 150, 500);
+            cameraOrtho.position.x = 0;
+            cameraOrtho.position.y = -100;
+            cameraOrtho.position.z = 200;
+            scene.add(cameraOrtho);
+            
+            //根據正交投影建立輔助工具
+            cameraOrthoHelper = new THREE.CameraHelper(cameraOrtho);
+            cameraOrthoHelper.visible = true;
+            scene.add(cameraOrthoHelper);
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //轉動透視投影
+            cameraPerpective.rotation.y += 0.04;        //讓投影沿 y 軸旋轉每次增加一定的弧度
+            cameraPerpective.updateProjectionMatrix();  //更新投影矩陣
+            cameraPerpectiveHelper.update();            //更新協助工具
+
+            //轉動正交投影
+            cameraOrtho.rotation.y -= 0.01;             //讓投影沿 y 軸旋轉每次增加一定的弧度
+            cameraOrtho.updateProjectionMatrix();       //更新投影矩陣
+            cameraOrthoHelper.update();                 //更新協助工具
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

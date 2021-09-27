@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+    <script src="../js/loaders/OBJLoader.js"></script>
+    <script src="../js/loaders/MTLLoader.js"></script>
+    <script src="../js/controls/TrackballControls.js"></script>
+    
+    <style type="text/css">
+        *{ margin: 0; padding: 0; }
+        canvas{display: block;}
+    </style>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, render, controls, model;
+        var WIDTH = window.innerWidth, HEIGHT = window.innerHeight;
+       
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }    
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //建立相機
+            camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 1000;
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //建立控制器
+            controls = new THREE.TrackballControls(camera);
+            controls.addEventListener('change', function(){
+                renderer.render(scene, camera);
+            });
+
+            //建立環境光
+            var ambientLight = new THREE.AmbientLight(0xffffff, 1);
+            scene.add(ambientLight);
+
+            //建立 THREE.OBJLoader
+            //模型本身沒有材質，在解析時解析器預設提供一個 MeshLambertMaterial，所以必須增加一個光源後才能看到解析後的效果
+            var objLoader = new THREE.OBJLoader();
+            //建立 THREE.MTLLoader
+            var mtlLoader = new THREE.MTLLoader();
+            
+            mtlLoader.setTexturePath('models/obj_bedroom/');
+            mtlLoader.load('models/obj_bedroom/bedroom.mtl', function(materials){
+                materials.preload();
+                objLoader.load('models/obj_bedroom/bedroom.obj', function(object){
+                    model = object;                     //回呼函數的參數是一個 THREE.Object3D，裡面包含很多 mesh
+                    model.scale.set(1, 1, 1);
+                    model.position.y = -40;
+                    scene.add(model);                   //將模型加到場景
+                });
+                objLoader.setMaterials(materials);
+            });
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+
+            //定義 resize 事件監聽
+            window.addEventListener('resize', canvasResizeHandler, false);
+        }
+
+        //Canvas resize 事件處理函數 
+        function canvasResizeHandler(){
+            WIDTH = window.innerWidth;
+            HEIGHT = window.innerHeight;
+
+            //更新繪製器和相機
+            camera.aspect = WIDTH / HEIGHT;
+
+            //用於更新 camera 投影矩陣，必須在 camera 參數一旦被改變時就一定要呼叫
+            camera.updateProjectionMatrix();		
+
+            //調整繪製大小
+            renderer.setSize(WIDTH, HEIGHT);
+            
+            //更新場景控制器
+            controls.handleResize();
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            if(model){
+                model.rotation.y += 0.01;
+            }
+
+            //控制器更新
+            controls.update();
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML5 Canvas</title>
+    <script src="../js/three.min.js"></script>
+</head>
+<body>
+    <script>
+        //定義全域變數
+        var camera, scene, renderer, geometry, mesh, particleSystem;
+
+        init();
+        animate();
+
+        //該函數用於初始化工作
+        function init(){
+            //建立繪製器，這個繪製器就是 canvas 元素，並判斷是否支援 WebGLRenderingContext
+            if(window.WebGLRenderingContext){
+                renderer = new THREE.WebGLRenderer();
+            }else{
+                renderer = new THREE.CanvasRenderer();
+            }
+
+            //設定場景大小
+            renderer.setSize(640, 480);     
+
+            //建立透視投影相機
+            camera = new THREE.PerspectiveCamera(55, 640/480, 1, 10000);
+            
+            //相機初始位置為原點，將相機拉回來一些，這樣才能看到原點
+            camera.position.z = 1000;       
+
+            //建立場景
+            scene = new THREE.Scene();
+
+            //呼叫自訂的產生粒子系統的函數
+            buildParticleSystem();
+
+            //將繪製器加到 DOM 結構中
+            document.body.appendChild(renderer.domElement); 
+        }
+
+        //該函數用於實現一個計時器動畫
+        function animate(){
+            //定時執行 animate() 函數
+            requestAnimationFrame(animate);
+
+            //旋轉
+            if(particleSystem){
+                //particleSystem.rotation.x += 0.01;
+                //particleSystem.rotation.y += 0.02;
+                updateParticles();
+            }
+
+            //使用指定的場景和相機繪製
+            renderer.render(scene, camera);
+        }
+
+        //產生粒子系統
+        function buildParticleSystem(){
+            //建立一個粒子用的紋理以及使用紋理建立粒子用的材質
+            var textureLoader = new THREE.TextureLoader();
+            var texture = textureLoader.load('textures/star.png', function(tex){
+
+                //建立基本粒子的材質：
+                //PointsMaterial:color[0xffffff], map[null], size[1.0], sizeAttenuation[true], vertexColors[false], fog[true]
+                var material = new THREE.PointsMaterial({size: 10,
+                    map: tex,
+                    depthTest: false,
+                    opacity: 1,
+                    sizeAttenuation: true,
+                    transparent: true});
+
+                //建構指定的 2D Canvas 圖形作為材質（此材質僅提供 CanvasRenderer 實現 2D 繪製）
+                // var material2 = new THREE.ParticleCanvasMaterial({color: 0xff0000, program: particleRender});
+                // function particleRender(ctx, color){
+                //     ctx.fillStyle = color;
+                //     ctx.beginPath();
+                //     ctx.moveTo(0, 0);
+                //     ctx.arc(0, 0, 1, 0, Math.PI*2, true);
+                //     ctx.closePath();
+                //     ctx.fill();
+                // }
+
+                //建立一個幾何體用於包含粒子
+                var particles = new THREE.Geometry();
+
+                //產生粒子，沿 Z 軸產生區間在 -1000 到 1000，每 20 就建立一個粒子，實際是建立 1000 個粒子
+                var particle;
+                for(var zpos = -1000; zpos < 1000; zpos += 20){
+                //使用材質產生粒子
+                particle = new THREE.Vector3();
+
+                //隨即產生粒子的 x 軸、y 軸，區間值為 -500 到 500
+                particle.x = Math.random()*1000 - 500;
+                particle.y = Math.random()*1000 - 500;
+                particle.z = zpos;
+
+                //將粒子加入 particles 頂點陣列
+                particles.vertices.push(particle);
+                }
+
+                //建立粒子系統
+                particleSystem = new THREE.Points(particles, material);
+
+                //允許粒子系統對粒子排序，以達到我們想要的效果
+                particleSystem.sortParticles = true;
+
+                //將粒子系統加入場景
+                scene.add(particleSystem);
+            });
+        }
+
+        //檢查每個粒子，改變粒子的位置，主要就是 z 軸的位置
+        function updateParticles(){
+            //取得粒子系統中的粒子數量
+            var particleNum = particleSystem.geometry.vertices.length;
+            
+            //因 Geometry 物件的頂點屬性 vertices 發生了改變，並不會更新 Mesh，需要打開更新選項
+            particleSystem.geometry.verticesNeedUpdate = true;
+            
+            //檢查每個粒子
+            for(var i = 0; i < particleNum; i++){
+                
+                particle = particleSystem.geometry.vertices[i];     //取得單一粒子
+                particle.z += 5;    //設定粒子向前移動的速度
+
+                //如果粒子 Z 軸位置到 1000，則將 z 軸位置設定到 -2000
+                //這樣就可以將粒子重置到很遠的位置，重複循環、出現無窮盡的星域效果
+                if(particle.z > 1000){
+                    particle.z -= 2000;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

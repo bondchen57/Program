@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<canvas id="glCanvas" width="640" height="480" style="border: 1px dashed #c3c3c3;">
+		瀏覽器如果不支援 canvas 元素，就顯示這行文字
+	</canvas>
+	<object type="image/png" id="myImage" style="border: 1px dashed #c3c3c3;"></object>
+
+	<script>
+		window.onload = function(){
+			//獲得 canvas 元素的參考
+			var canvas = document.getElementById('glCanvas');
+
+			//建立 WebGLRenderingContext 物件，首先檢測 canvas 是否可用
+			if(canvas && canvas.getContext){
+				var gl = canvas.getContext('webgl') ||
+						 canvas.getContext('webkit-3d') ||
+						 canvas.getContext('experimenal-webgl') ||
+						 canvas.getContext('moz-3d');
+
+				//檢測是否支援 WebGL，看是否傳回了 WebGLRenderingContext 物件
+				//如果傳回了 WebGLRenderingContext 物件就可以開始 3D 繪圖
+				if(gl){
+					
+					// 設定常用的 3D 繪製環境 =====================================
+					//指定 clear() 方法清除顏色快取後填充所使用的各個分量
+					//這裡填充完全的 RGBA 四種分量，最後，清除顏色快取後填充一個不透明的白色
+					gl.clearColor(1.0, 1.0, 1.0, 1.0);		
+
+					//開啟深度測試
+					gl.enable(gl.DEPTH_TEST);				
+
+					//指定深度快取測試中使用的深度運算子，這裡設定為"<="，也即近物淺、遠物深
+					gl.depthFunc(gl.LEQUAL);				
+
+					//清空顏色快取和深度快取
+					gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+
+					//設定視點大小與畫布相同，預設也是這個設定
+					gl.viewport(0, 0, canvas.width, canvas.height);
+					//=========================================================
+
+
+					// 撰寫 GPU 程式 ============================================
+					var program = gl.createProgram();			//建立程式
+
+					//著色器程式分為兩個部分：處理座標的「頂點著色器」、處理顏色的「部分著色器」，需分別撰寫
+					var vs, fs, vs_s, fs_s;						//定義著色器相關變數
+					vs = gl.createShader(gl.VERTEX_SHADER);		//建立頂點著色器
+					fs = gl.createShader(gl.FRAGMENT_SHADER);	//建立部分著色器
+
+					//分別定義著色器程式的原始程式
+					vs_s = 'attribute vec3 p;void main(){gl_Position=vec4(p, 1.0);}';
+					fs_s = 'void main(){gl_FragColor=vec4(1.0,0.0,0.0,1.0);}';
+
+					//把原始程式增加進著色器
+					gl.shaderSource(vs, vs_s);
+					gl.shaderSource(fs, fs_s);
+
+					//編譯著色器
+					gl.compileShader(vs);
+					gl.compileShader(fs);
+
+					//把著色器增加到程式中
+					gl.attachShader(program, vs);
+					gl.attachShader(program, fs);
+
+					//把這兩個著色器程式連結成一個完整的程式
+					gl.linkProgram(program);
+
+					//把這個程式放入顯示記憶體中
+					gl.useProgram(program);
+					//=========================================================
+
+
+					// 傳遞資料 =================================================
+					var vertices = [0, 0.5, 0,	-0.5, -0.5, 0,	0.5, -0.5, 0 ]; //定義一個頂點陣列，包含三個座標，實際上組成一個三角形
+					vertices = new Float32Array(vertices);						//將 JavaScript 陣列轉為強類別陣列
+
+					var buf = gl.createBuffer();								//在顯示記憶體中建立一個資料快取區
+					gl.bindBuffer(gl.ARRAY_BUFFER, buf);						//設定這個資料快取區為目前操作物件
+					gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);	//把記憶體中的頂點陣列複製到目前操作的資料快區中
+
+					var p = gl.getAttribLocation(program, 'p');					//取得頂點著色器中變數 p 的位置序號
+					gl.enableVertexAttribArray(p);								//開啟 p 的陣列模式
+					gl.bindBuffer(gl.ARRAY_BUFFER, buf);						//設定 buf 這個資料快取區為目前操作物件
+					gl.vertexAttribPointer(p, 3, gl.FLOAT, false, 0, 0);		//把目前工作的資料快取區指定給 p 這個變數
+					//=========================================================
+
+
+					// 繪製 ====================================================
+					//繪製函數有三個像素：像素；頂點陣列的開始索引，要用上所有的點，所以所是從 0 開始；頂點數量，要繪製三個頂點，所以這裡是 3
+					gl.drawArrays(gl.TRIANGLES, 0, 3);
+					var url = canvas.toDataURL();								//轉化為 base64 編碼表示的圖像資料
+					var image = document.getElementById('myImage');				//取得 object 元素
+					image.data = url;											//設定值給 data 屬性
+					//=========================================================
+				}
+			}
+		};
+	</script>
+</body>
+</html>
